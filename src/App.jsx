@@ -92,42 +92,84 @@ export default function App() {
     setPage('discover');
   };
 
-  const handleAddToLibrary = () => {
+  const handleAddToLibrary = async () => {
     if (!selectedGameId) {
       return;
     }
 
-    setLibraryGameIds((currentIds) => {
-      if (currentIds.includes(selectedGameId)) {
+    try {
+      const response = await fetch('http://localhost:3000/api/library', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: 1,
+          gameId: selectedGame.id,
+          gameName: selectedGame.title
+        }),
+      });
+
+      if (response.status === 409) {
         setSnackbarMessage('This game is already in your library.');
-        return currentIds;
+        return;
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
       }
 
       setSnackbarMessage('Game added to My Game Library.');
-      return [...currentIds, selectedGameId];
-    });
+      setLibraryGameIds((currentIds) => {
+        if (!currentIds.includes(selectedGameId)) {
+          return [...currentIds, selectedGameId];
+        }
+        return currentIds;
+      });
+
+    } catch (error) {
+      console.error('Failed to add game to library:', error);
+      setSnackbarMessage('Error: Could not add game to library.');
+    }
   };
 
-  const handleSubmitReview = ({ rating, comment }) => {
+  const handleSubmitReview = async ({ rating, comment }) => {
     if (!selectedGame) {
       return;
     }
 
-    const nextReview = {
-      id: reviews.length + 1,
+    const reviewDataToSend = {
       gameId: selectedGame.id,
       title: selectedGame.title,
+      posterUrl: selectedGame.posterUrl,
       reviewText: comment || 'No written comment provided.',
       username: CURRENT_USERNAME,
-      date: formatToday(),
-      rating,
-      posterUrl: selectedGame.posterUrl,
+      rating: rating,
       isFeatured: false,
     };
 
-    setReviews((currentReviews) => [nextReview, ...currentReviews]);
-    setReviewDialogOpen(false);
-    setSnackbarMessage('Review posted successfully.');
+    try {
+      const response = await fetch('http://localhost:3000/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reviewDataToSend),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      const savedReview = await response.json();
+
+      setReviews((currentReviews) => [savedReview, ...currentReviews]);
+      setReviewDialogOpen(false);
+      setSnackbarMessage('Review posted successfully.');
+      console.log('Successfully saved to backend:', savedReview);
+
+    } catch (error) {
+      console.error('Failed to post review:', error);
+      setSnackbarMessage('Error: Could not save review.');
+    }
   };
 
   let pageContent = null;
