@@ -96,7 +96,8 @@ export default function HomePage({
                 key={`featured-game-${game.id}`}
                 title={game.title}
                 posterSrc={game.posterUrl}
-                subtitle={`${game.developer} · ${game.releaseYear}`}
+                developer={game.developer}
+                year={game.releaseYear}
                 sx={styles.featuredGameCardSx}
                 onClick={() => onOpenGame(game.id)}
               />

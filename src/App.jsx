@@ -1,26 +1,33 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Box, CircularProgress, Container, Snackbar, ThemeProvider, Typography } from '@mui/material';
-import theme from './theme';
-import * as styles from './styles/appStyles';
-import { getHomeViewModel } from './controllers/homeController';
-import { CURRENT_USERNAME } from './constants/homeContent';
-import AppHeader from './components/AppHeader';
-import ReviewDialog from './components/ReviewDialog';
-import HomePage from './pages/HomePage';
-import DiscoverPage from './pages/DiscoverPage';
-import GameProfilePage from './pages/GameProfilePage';
-import LibraryPage from './pages/LibraryPage';
+import { useEffect, useMemo, useState } from "react";
+import {
+  Box,
+  CircularProgress,
+  Container,
+  Snackbar,
+  ThemeProvider,
+  Typography,
+} from "@mui/material";
+import theme from "./theme";
+import * as styles from "./styles/appStyles";
+import { getHomeViewModel } from "./controllers/homeController";
+import { CURRENT_USERNAME } from "./constants/homeContent";
+import AppHeader from "./components/AppHeader";
+import ReviewDialog from "./components/ReviewDialog";
+import HomePage from "./pages/HomePage";
+import DiscoverPage from "./pages/DiscoverPage";
+import GameProfilePage from "./pages/GameProfilePage";
+import LibraryPage from "./pages/LibraryPage";
 
 function formatToday() {
-  return new Intl.DateTimeFormat('en-CA', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
+  return new Intl.DateTimeFormat("en-CA", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   }).format(new Date());
 }
 
 export default function App() {
-  const [page, setPage] = useState('home');
+  const [page, setPage] = useState("home");
   const [games, setGames] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [featuredGames, setFeaturedGames] = useState([]);
@@ -29,7 +36,7 @@ export default function App() {
   const [libraryGameIds, setLibraryGameIds] = useState([1, 4]);
   const [loading, setLoading] = useState(true);
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -77,19 +84,19 @@ export default function App() {
 
   const handleNavigate = (nextPage) => {
     setPage(nextPage);
-    if (nextPage !== 'game') {
+    if (nextPage !== "game") {
       setReviewDialogOpen(false);
     }
   };
 
   const handleOpenGame = (gameId) => {
     setSelectedGameId(gameId);
-    setPage('game');
+    setPage("game");
   };
 
   const handleBackFromGame = () => {
     setReviewDialogOpen(false);
-    setPage('discover');
+    setPage("discover");
   };
 
   const handleAddToLibrary = async () => {
@@ -98,36 +105,35 @@ export default function App() {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/library', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:3000/api/library", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: 1,
           gameId: selectedGame.id,
-          gameName: selectedGame.title
+          gameName: selectedGame.title,
         }),
       });
 
       if (response.status === 409) {
-        setSnackbarMessage('This game is already in your library.');
+        setSnackbarMessage("This game is already in your library.");
         return;
       }
-      
+
       if (!response.ok) {
         throw new Error(`Server error: ${response.status}`);
       }
 
-      setSnackbarMessage('Game added to My Game Library.');
+      setSnackbarMessage("Game added to My Game Library.");
       setLibraryGameIds((currentIds) => {
         if (!currentIds.includes(selectedGameId)) {
           return [...currentIds, selectedGameId];
         }
         return currentIds;
       });
-
     } catch (error) {
-      console.error('Failed to add game to library:', error);
-      setSnackbarMessage('Error: Could not add game to library.');
+      // Error already handled by snackbar
+      setSnackbarMessage("Error: Could not add game to library.");
     }
   };
 
@@ -140,17 +146,17 @@ export default function App() {
       gameId: selectedGame.id,
       title: selectedGame.title,
       posterUrl: selectedGame.posterUrl,
-      reviewText: comment || 'No written comment provided.',
+      reviewText: comment || "No written comment provided.",
       username: CURRENT_USERNAME,
       rating: rating,
       isFeatured: false,
     };
 
     try {
-      const response = await fetch('http://localhost:3000/api/reviews', {
-        method: 'POST',
+      const response = await fetch("http://localhost:3000/api/reviews", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(reviewDataToSend),
       });
@@ -163,12 +169,10 @@ export default function App() {
 
       setReviews((currentReviews) => [savedReview, ...currentReviews]);
       setReviewDialogOpen(false);
-      setSnackbarMessage('Review posted successfully.');
-      console.log('Successfully saved to backend:', savedReview);
-
+      setSnackbarMessage("Review posted successfully.");
     } catch (error) {
-      console.error('Failed to post review:', error);
-      setSnackbarMessage('Error: Could not save review.');
+      // Error already handled by snackbar
+      setSnackbarMessage("Error: Could not save review.");
     }
   };
 
@@ -176,13 +180,13 @@ export default function App() {
 
   if (loading) {
     pageContent = (
-      <Box sx={{ minHeight: '55vh', display: 'grid', placeItems: 'center' }}>
+      <Box sx={{ minHeight: "55vh", display: "grid", placeItems: "center" }}>
         <CircularProgress />
       </Box>
     );
-  } else if (page === 'discover') {
+  } else if (page === "discover") {
     pageContent = <DiscoverPage games={games} onOpenGame={handleOpenGame} />;
-  } else if (page === 'game') {
+  } else if (page === "game") {
     pageContent = (
       <GameProfilePage
         game={selectedGame}
@@ -193,8 +197,10 @@ export default function App() {
         onOpenReview={() => setReviewDialogOpen(true)}
       />
     );
-  } else if (page === 'library') {
-    pageContent = <LibraryPage libraryGames={libraryGames} onOpenGame={handleOpenGame} />;
+  } else if (page === "library") {
+    pageContent = (
+      <LibraryPage libraryGames={libraryGames} onOpenGame={handleOpenGame} />
+    );
   } else {
     pageContent = (
       <HomePage
@@ -222,7 +228,7 @@ export default function App() {
 
         <ReviewDialog
           open={reviewDialogOpen}
-          gameTitle={selectedGame?.title || 'this game'}
+          gameTitle={selectedGame?.title || "this game"}
           onClose={() => setReviewDialogOpen(false)}
           onSubmit={handleSubmitReview}
         />
@@ -231,7 +237,7 @@ export default function App() {
           open={Boolean(snackbarMessage)}
           autoHideDuration={2800}
           message={snackbarMessage}
-          onClose={() => setSnackbarMessage('')}
+          onClose={() => setSnackbarMessage("")}
         />
       </Box>
     </ThemeProvider>

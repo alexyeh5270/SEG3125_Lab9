@@ -1,7 +1,14 @@
-// server/index.js
-import express from 'express';
-import cors from 'cors';
-import sqlite3 from 'sqlite3';
+import path from "path";
+import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+import express from "express";
+import cors from "cors";
+import sqlite3 from "sqlite3";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, ".env") });
+
+import { fetchGameById, fetchGameByName } from "./thegamesdb.js";
 
 const app = express();
 const port = 3000;
@@ -9,14 +16,13 @@ const port = 3000;
 app.use(cors());
 app.use(express.json());
 
+app.get("/api/games/by-id", fetchGameById);
+app.get("/api/games/by-name", fetchGameByName);
 
-const db = new sqlite3.Database('./database.db', (err) => {
+const db = new sqlite3.Database("./database.db", (err) => {
   if (err) {
-    console.error('Error opening database:', err.message);
+    console.error("Error opening database:", err.message);
   } else {
-    console.log('Connected to the SQLite database.');
-    
-    // Create the reviews table
     db.run(`
       CREATE TABLE IF NOT EXISTS reviews (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,8 +36,6 @@ const db = new sqlite3.Database('./database.db', (err) => {
         date TEXT NOT NULL
       )
     `);
-
-    // Create the users table
     db.run(`
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,8 +44,6 @@ const db = new sqlite3.Database('./database.db', (err) => {
         password_hash TEXT NOT NULL
       )
     `);
-
-    // Create the user_library table to link users and games
     db.run(`
       CREATE TABLE IF NOT EXISTS user_libraries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,23 +57,17 @@ const db = new sqlite3.Database('./database.db', (err) => {
   }
 });
 
-app.post('/api/reviews', (req, res) => {
+app.post("/api/reviews", (req, res) => {
   const incomingReviewData = req.body;
-  
-  console.log("Received data from frontend:", incomingReviewData);
-
-  const date = new Intl.DateTimeFormat('en-CA', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
+  const date = new Intl.DateTimeFormat("en-CA", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   }).format(new Date());
-
-
   const sql = `
     INSERT INTO reviews (gameId, title, posterUrl, reviewText, username, rating, isFeatured, date)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `;
-
   const params = [
     incomingReviewData.gameId,
     incomingReviewData.title,
@@ -79,70 +75,69 @@ app.post('/api/reviews', (req, res) => {
     incomingReviewData.reviewText,
     incomingReviewData.username,
     incomingReviewData.rating,
-    incomingReviewData.isFeatured ? 1 : 0, 
-    date
+    incomingReviewData.isFeatured ? 1 : 0,
+    date,
   ];
-
-  db.run(sql, params, function(err) {
+  db.run(sql, params, function (err) {
     if (err) {
-      console.error("Error inserting review:", err.message);
       return res.status(500).json({ error: "Failed to save review" });
     }
-
-
     const savedReview = {
-        id: this.lastID, 
-        date: date, 
-        ...incomingReviewData 
+      id: this.lastID,
+      date: date,
+      ...incomingReviewData,
     };
-
     res.status(201).json(savedReview);
   });
 });
 
-// POST endpoint to add a game to a user's library
-app.post('/api/library', (req, res) => {
-  const { userId, gameId, gameName } = req.body;
-
+app.post("/api/library", (req, res) => {
+  const { userId, gameId } = req.body;
   if (!userId || !gameId) {
-    return res.status(400).json({ error: "Missing userId or gameId in request body" });
+    return res
+      .status(400)
+      .json({ error: "Missing userId or gameId in request body" });
   }
-
-  console.log(`Received request to add game: ${gameName} (ID: ${gameId}) for user: ${userId}`);
-
-  const date = new Intl.DateTimeFormat('en-CA', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
+  const date = new Intl.DateTimeFormat("en-CA", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   }).format(new Date());
-
   const sql = `
     INSERT INTO user_libraries (user_id, game_id, added_date)
     VALUES (?, ?, ?)
   `;
-
-  db.run(sql, [userId, gameId, date], function(err) {
+  db.run(sql, [userId, gameId, date], function (err) {
     if (err) {
-      if (err.message.includes('UNIQUE constraint failed')) {
-        return res.status(409).json({ error: "Game is already in the user's library" });
+      if (err.message.includes("UNIQUE constraint failed")) {
+        return res
+          .status(409)
+          .json({ error: "Game is already in the user's library" });
       }
-      
-      console.error("Error adding to library:", err.message);
       return res.status(500).json({ error: "Failed to add game to library" });
     }
-
     res.status(201).json({
       message: "Game added to library successfully",
       libraryEntry: {
         id: this.lastID,
         userId: userId,
         gameId: gameId,
-        addedDate: date
-      }
+        addedDate: date,
+      },
     });
   });
 });
 
+app.get("/api/reviews", (req, res) => {
+  db.all("SELECT * FROM reviews", [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: "Failed to fetch reviews" });
+    }
+    res.json(rows);
+  });
+});
+
 app.listen(port, () => {
+  // eslint-disable-next-line no-console
   console.log(`Backend server running at http://localhost:${port}`);
 });

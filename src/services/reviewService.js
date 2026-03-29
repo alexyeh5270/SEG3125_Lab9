@@ -1,13 +1,13 @@
-import { mockReviews } from '../data/mockData';
+import { getJson } from "./apiClient";
 
 export async function listAllReviews() {
-  return mockReviews;
+  return getJson("api/reviews");
 }
-
 export async function listFeaturedReviews() {
-  return mockReviews.filter((review) => review.isFeatured);
+  const reviews = await getJson("api/reviews");
+  return reviews.filter((review) => review.isFeatured);
 }
-
 export async function listReviewsByGameId(gameId) {
-  return mockReviews.filter((review) => review.gameId === Number(gameId));
+  const reviews = await getJson("api/reviews");
+  return reviews.filter((review) => review.gameId === Number(gameId));
 }

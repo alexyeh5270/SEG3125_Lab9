@@ -235,7 +235,6 @@ export const typography = {
   },
 };
 
-// Backward-compatible exports
 export const appShellSx = layout.appShell;
 export const headerBarSx = surfaces.topBar;
 export const toolbarSx = layout.toolbarBetween;
