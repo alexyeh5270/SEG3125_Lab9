@@ -12,7 +12,7 @@ import {
 import StarRating from './StarRating';
 import * as styles from '../styles/appStyles';
 
-export default function ReviewDialog({ open, gameTitle, onClose, onSubmit }) {
+export default function ReviewDialog({ open, gameTitle, onClose, onSubmit, tr }) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -27,7 +27,8 @@ export default function ReviewDialog({ open, gameTitle, onClose, onSubmit }) {
 
   const handleSubmit = () => {
     if (!rating) {
-      setErrorMessage('Error: review must contain star rating');
+      // MODIFIED: bilingual validation message
+      setErrorMessage(tr('review.errorMissingRating'));
       return;
     }
 
@@ -50,7 +51,7 @@ export default function ReviewDialog({ open, gameTitle, onClose, onSubmit }) {
       <DialogContent sx={styles.reviewDialogContentSx}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
           <Typography variant="h5" sx={{ fontWeight: 700, color: '#14151a' }}>
-            Leave a Review
+            {tr('review.title')}
           </Typography>
 
           <IconButton
@@ -68,7 +69,7 @@ export default function ReviewDialog({ open, gameTitle, onClose, onSubmit }) {
 
         <Box sx={{ mt: 2.2 }}>
           <Typography variant="body2" sx={styles.reviewDialogLabelSx}>
-            Comment
+            {tr('review.comment')}
           </Typography>
 
           <TextField
@@ -77,9 +78,7 @@ export default function ReviewDialog({ open, gameTitle, onClose, onSubmit }) {
             fullWidth
             value={comment}
             onChange={(event) => setComment(event.target.value)}
-            placeholder={
-              gameTitle ? `Share your thoughts about ${gameTitle}` : 'Share your thoughts'
-            }
+            placeholder={tr('review.placeholder', { title: gameTitle })}
             InputProps={{ sx: styles.reviewDialogInputSx }}
           />
         </Box>
@@ -92,7 +91,7 @@ export default function ReviewDialog({ open, gameTitle, onClose, onSubmit }) {
 
         <Stack direction="row" justifyContent="flex-end" sx={{ mt: 2.6 }}>
           <Button variant="contained" onClick={handleSubmit} sx={styles.reviewDialogPostButtonSx}>
-            Post
+            {tr('review.post')}
           </Button>
         </Stack>
       </DialogContent>

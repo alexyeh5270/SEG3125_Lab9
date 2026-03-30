@@ -1,22 +1,10 @@
-export const NAV_ITEMS = [
-  { key: 'home', label: 'Home' },
-  { key: 'discover', label: 'Discover' },
-  { key: 'library', label: 'My Game Library' },
-];
+// MODIFIED: keep only stable application constants here.
+// MODIFIED: moved visible UI text into i18n.js for bilingual support.
 
-export const HOME_SUBTITLE = 'Top picks from the community this week.';
-
-export const FEATURED_SECTIONS = {
-  games: {
-    title: 'Featured Games',
-    subtitle: HOME_SUBTITLE,
-  },
-  reviews: {
-    title: 'Featured Reviews',
-    subtitle: HOME_SUBTITLE,
-  },
-};
+export const CURRENT_USER_ID = 1;
+export const CURRENT_USERNAME = 'PlayerOne';
 
 export const DEFAULT_REVIEW_RATING = 4;
 export const MAX_REVIEW_RATING = 5;
-export const CURRENT_USERNAME = 'PlayerOne';
+
+export const LIBRARY_STATUSES = ['want_to_play', 'playing', 'completed'];
